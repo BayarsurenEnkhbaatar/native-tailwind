@@ -1,39 +1,80 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { SplashScreen, Tabs } from 'expo-router';
+import React, { useEffect } from 'react';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import TabBar from '@/components/TabBar';
+import Login from '@/components/Login';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import SplashScreenMy from '@/components/SplashScreenMy';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+const AppTabs = () => {
+  const { userToken, loading } = useAuth();
+  const [fontsLoaded] = useFonts({
+    "ChEuropeExt": require('../assets/fonts/ChEuropeExt.ttf'),
+    "ChEuropeExtBold": require('../assets/fonts/ChEuropeExtBold.ttf'),
+    "AGOptimaMon": require('../assets/fonts/AGOptimaMon.ttf'),
+    "specemono": require('../assets/fonts/SpaceMono-Regular.ttf'),
+  })
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
+  useEffect(()=>{
+    if(fontsLoaded){
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [fontsLoaded]);
 
-  if (!loaded) {
-    return null;
+  if(!fontsLoaded) return null;
+
+  if (loading) {
+    return <SplashScreenMy />;
+  }
+
+  if (!userToken) {
+    return <Login />;
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Tabs tabBar={(props) => <TabBar {...props} />}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Нүүр',
+          tabBarLabel: 'Нүүр',
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="address"
+        options={{
+          title: 'Address',
+          tabBarLabel:'Хаяг холбох',
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="help"
+        options={{
+          title: 'Help',
+          tabBarLabel:'Тусламж',
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarLabel:'Хэрэглэгч',
+          headerShown: false,
+        }}
+      />
+    </Tabs>
   );
-}
+};
+
+const _layout = () => {
+  return (
+    <AuthProvider>
+      <AppTabs />
+    </AuthProvider>
+  );
+};
+
+export default _layout;
